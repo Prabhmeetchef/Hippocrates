@@ -14,7 +14,7 @@ Fully frontend — no backend or server involved
 ## 🛠️ Setup Instructions
 1. Clone the Repository
 
-*git clone https://github.com/your-username/patient-registration-app.git*
+*git clone https://github.com/Prabhmeetchef/Hippocrates.git*
 
 *cd patient-registration-app*
 
