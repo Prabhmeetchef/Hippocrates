@@ -5,7 +5,7 @@ import { getDb, onDbChange, type SyncEvent } from "@/lib/db";
 
 export default function QueryPage() {
   const [sql, setSql] = useState("SELECT * FROM patients ORDER BY id DESC");
-  const [results, setResults] = useState<any[] | null>(null);
+  const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [syncNotification, setSyncNotification] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -19,12 +19,16 @@ export default function QueryPage() {
     try {
       const db = await getDb();
       const res = await db.query(sql);
-      setResults(res.rows || []);
+      setResults((res.rows as Record<string, unknown>[]) || []);
       setLastQueryTime(new Date());
       console.log("Query executed, results:", res.rows?.length || 0, "rows");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Query error:", err);
-      setError(err.message || "Failed to execute query");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to execute query");
+      }
       setResults(null);
     } finally {
       if (showLoading) setIsLoading(false);

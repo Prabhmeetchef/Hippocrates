@@ -71,10 +71,10 @@ export default function Notes() {
                   <div>
                     <h3 className="text-lg font-medium text-gray-800 mb-2">How to Register a Patient:</h3>
                     <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                      <li>Navigate to the "Register Patient" page</li>
-                      <li>Enter the patient's name (required field)</li>
-                      <li>Enter the patient's age (must be a positive number)</li>
-                      <li>Click "Submit" to save the patient record</li>
+                      <li>Navigate to the &quot;Register Patient&quot; page</li>
+                      <li>Enter the patient&apos;s name (required field)</li>
+                      <li>Enter the patient&apos;s age (must be a positive number)</li>
+                      <li>Click &quot;Submit&quot; to save the patient record</li>
                     </ol>
                   </div>
                   <div className="bg-yellow-50/80 backdrop-blur-sm p-4 rounded-xl border border-yellow-200">
@@ -96,9 +96,9 @@ export default function Notes() {
                   <div>
                     <h3 className="text-lg font-medium text-gray-800 mb-2">Basic Usage:</h3>
                     <ol className="list-decimal list-inside space-y-2 text-gray-700">
-                      <li>Navigate to the "Run Query" page</li>
+                      <li>Navigate to the &quot;Run Query&quot; page</li>
                       <li>Type your SQL query in the text area</li>
-                      <li>Click "Run Query" to execute</li>
+                      <li>Click &quot;Run Query&quot; to execute</li>
                       <li>Results will be displayed in a table below</li>
                     </ol>
                   </div>
@@ -113,7 +113,7 @@ export default function Notes() {
                       <div className="mt-4"><span className="text-gray-400">-- Count total patients</span></div>
                       <div>SELECT COUNT(*) as total_patients FROM patients;</div>
                       <div className="mt-4"><span className="text-gray-400">-- Find patients by name pattern</span></div>
-                      <div>SELECT * FROM patients WHERE name LIKE '%John%';</div>
+                      <div>SELECT * FROM patients WHERE name LIKE &apos;%John%&apos;;</div>
                     </div>
                   </div>
 
@@ -123,7 +123,7 @@ export default function Notes() {
                       Auto-Refresh Feature:
                     </h3>
                     <p className="text-gray-700">
-                      Enable "Auto-refresh on changes" to automatically re-run your query whenever new patient data 
+                      Enable &quot;Auto-refresh on changes&quot; to automatically re-run your query whenever new patient data 
                       is added from other tabs or windows. This keeps your results up-to-date in real-time.
                     </p>
                   </div>

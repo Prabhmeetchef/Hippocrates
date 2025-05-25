@@ -23,14 +23,14 @@ export type SyncEvent = {
   operation: "INSERT" | "UPDATE" | "DELETE";
   table: string;
   timestamp: number;
-  data?: any;
+  data?: Record<string, unknown>;
 };
 
 // Function to broadcast database changes
 export const broadcastChange = (
   operation: "INSERT" | "UPDATE" | "DELETE",
   table: string,
-  data?: any
+  data?: Record<string, unknown>
 ) => {
   const channel = getBroadcastChannel();
   if (channel) {
@@ -83,8 +83,7 @@ export const insertPatient = async (name: string, age: number) => {
       [name.trim(), age]
     );
     
-    broadcastChange("INSERT", "patients", result.rows[0]);
-    
+    broadcastChange("INSERT", "patients", result.rows[0] as Record<string, unknown>);    
     return result.rows[0];
   } catch (error) {
     console.error("Failed to insert patient:", error);

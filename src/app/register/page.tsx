@@ -72,9 +72,13 @@ export default function RegisterPage() {
       setName("");
       setAge("");
       setSuccess(`Patient "${newPatient.name}" registered successfully!`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(err.message || "Failed to register patient");
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to register patient");
+      }
     } finally {
       setIsSubmitting(false);
     }
