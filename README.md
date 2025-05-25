@@ -16,7 +16,7 @@ Fully frontend — no backend or server involved
 
 *git clone https://github.com/Prabhmeetchef/Hippocrates.git*
 
-*cd patient-registration-app*
+*cd hippocrates*
 
 2. Install Dependencies
 
