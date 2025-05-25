@@ -33,13 +33,6 @@ Next.js (App Router)
 
 PGlite – Embedded PostgreSQL for browsers
 
-IndexedDB – Local storage for persistence
-
-## 📌 Notes
-This version is the basic version with no sync or broadcasting.
-
-See later commits in the repo for multi-tab sync and notification enhancements.
-
 ## 👤 Author
 Prabhmeet Singh
 📧 prabhmeetsinghns1000@gmail.com
