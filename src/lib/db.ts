@@ -95,9 +95,8 @@ export const insertPatient = async (name: string, age: number) => {
     );
     
     // Dual sync system
-    broadcastChange("INSERT", "patients", result.rows[0]);
+    broadcastChange("INSERT", "patients", result.rows[0] as Record<string, unknown>);
     await forceSync();
-    
     return result.rows[0];
   } catch (error) {
     console.error("Failed to insert patient:", error);

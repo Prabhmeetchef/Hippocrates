@@ -19,7 +19,7 @@ export default function RegisterPage() {
       try {
         setIsLoadingPatients(true);
         const data = await getAllPatients();
-        setPatients(data);
+        setPatients(data as Record<string, unknown>[]);
       } catch (err) {
         console.error("Failed to load patients:", err);
       } finally {
@@ -97,7 +97,7 @@ export default function RegisterPage() {
       
       // Refresh patient list
       const updatedPatients = await getAllPatients();
-      setPatients(updatedPatients);
+      setPatients(updatedPatients as Record<string, unknown>[]);
     } catch (err: unknown) {
       console.error("Registration error:", err);
       if (err instanceof Error) {
