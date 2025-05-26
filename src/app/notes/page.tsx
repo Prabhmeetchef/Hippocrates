@@ -175,7 +175,6 @@ export default function Notes() {
           </div>
         </div>
       </main>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white mt-20">
         <div className="container mx-auto"> 

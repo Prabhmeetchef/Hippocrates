@@ -21,7 +21,6 @@ export default function QueryPage() {
       const res = await db.query(sql);
       setResults((res.rows as Record<string, unknown>[]) || []);
       setLastQueryTime(new Date());
-      console.log("Query executed, results:", res.rows?.length || 0, "rows");
     } catch (err: unknown) {
       console.error("Query error:", err);
       if (err instanceof Error) {
@@ -36,31 +35,33 @@ export default function QueryPage() {
   }, [sql]);
 
   useEffect(() => {
-    runQuery();
-  }, [runQuery]);
-
-  useEffect(() => {
-    const unsubscribe = onDbChange((event: SyncEvent) => {
-      console.log("Query page received sync event:", event);
-      
+    const handleDbChange = async (event: SyncEvent) => {
       if (event.table === "patients") {
         const date = new Date(event.timestamp);
         const timeString = date.toLocaleTimeString();
         
         setSyncNotification(
-          `Data ${event.operation.toLowerCase()}d in another tab at ${timeString}`
+          `Data ${event.operation.toLowerCase()}d at ${timeString}, refresh the tab to see changes`
         );
 
         if (autoRefresh && sql.toLowerCase().includes("patients")) {
-          console.log("Auto-refreshing query due to sync event");
+          const db = await getDb();
+          await db.query("SELECT 1"); // Force sync
           runQuery(false);
         }
 
         setTimeout(() => setSyncNotification(null), 4000);
       }
-    });
+    };
 
-    return unsubscribe;
+    const unsubscribe = onDbChange(handleDbChange);
+    
+    // Initial data load
+    runQuery();
+    
+    return () => {
+      unsubscribe();
+    };
   }, [autoRefresh, sql, runQuery]);
 
   const handleRunQuery = () => {

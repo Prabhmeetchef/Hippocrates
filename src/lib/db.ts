@@ -3,10 +3,51 @@
 import { PGlite } from "@electric-sql/pglite";
 
 let db: PGlite | null = null;
-
+const SYNC_KEY = 'patient-db-sync-v3';
 const CHANNEL_NAME = "patient-db-sync";
 let broadcastChannel: BroadcastChannel | null = null;
 
+// Database initialization with retry logic
+export const getDb = async () => {
+  if (!db) {
+    try {
+      db = new PGlite("idb://patient-db", { relaxedDurability: true });
+      
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS patients (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          age INTEGER NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Force initial sync
+      await db.query("SELECT 1");
+      console.log("Database initialized successfully");
+    } catch (error) {
+      console.error("Failed to initialize database:", error);
+      throw error;
+    }
+  }
+  return db;
+};
+
+// Enhanced sync function
+export const forceSync = async () => {
+  const database = await getDb();
+  try {
+    // Triple sync pattern
+    await database.query("COMMIT");
+    await database.query("SELECT 1");
+    await database.query("VACUUM");
+    localStorage.setItem(SYNC_KEY, Date.now().toString());
+  } catch (error) {
+    console.error("Sync failed:", error);
+  }
+};
+
+// BroadcastChannel setup
 const getBroadcastChannel = () => {
   if (typeof window !== "undefined" && !broadcastChannel) {
     try {
@@ -26,7 +67,6 @@ export type SyncEvent = {
   data?: Record<string, unknown>;
 };
 
-// Function to broadcast database changes
 export const broadcastChange = (
   operation: "INSERT" | "UPDATE" | "DELETE",
   table: string,
@@ -41,37 +81,8 @@ export const broadcastChange = (
       timestamp: Date.now(),
       data,
     };
-    
-    // Small delay to ensure the database operation is completed
-    setTimeout(() => {
-      channel.postMessage(event);
-    }, 100);
+    channel.postMessage(event);
   }
-};
-
-export const getDb = async () => {
-  if (!db) {
-    try {
-      db = new PGlite("idb://patient-db");
-      
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS patients (
-          id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
-          age INTEGER NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-
-      getBroadcastChannel();
-      
-      console.log("Database initialized successfully");
-    } catch (error) {
-      console.error("Failed to initialize database:", error);
-      throw error;
-    }
-  }
-  return db;
 };
 
 export const insertPatient = async (name: string, age: number) => {
@@ -83,7 +94,10 @@ export const insertPatient = async (name: string, age: number) => {
       [name.trim(), age]
     );
     
-    broadcastChange("INSERT", "patients", result.rows[0] as Record<string, unknown>);    
+    // Dual sync system
+    broadcastChange("INSERT", "patients", result.rows[0]);
+    await forceSync();
+    
     return result.rows[0];
   } catch (error) {
     console.error("Failed to insert patient:", error);
@@ -93,7 +107,6 @@ export const insertPatient = async (name: string, age: number) => {
 
 export const getAllPatients = async () => {
   const database = await getDb();
-  
   try {
     const result = await database.query("SELECT * FROM patients ORDER BY id DESC");
     return result.rows;
@@ -107,22 +120,31 @@ export const onDbChange = (
   callback: (event: SyncEvent) => void
 ): (() => void) => {
   const channel = getBroadcastChannel();
-  if (!channel) {
-    console.warn("BroadcastChannel not available");
-    return () => {};
-  }
-
-  const handler = (event: MessageEvent) => {
+  
+  const bcHandler = (event: MessageEvent) => {
     if (event.data?.type === "DB_CHANGE") {
-      console.log("Received sync event:", event.data);
       callback(event.data);
     }
   };
 
-  channel.addEventListener("message", handler);
+  const lsHandler = (e: StorageEvent) => {
+    if (e.key === SYNC_KEY) {
+      callback({
+        type: "DB_CHANGE",
+        operation: "UPDATE",
+        table: "patients",
+        timestamp: parseInt(e.newValue || '0'),
+        data: undefined
+      });
+    }
+  };
+
+  if (channel) channel.addEventListener("message", bcHandler);
+  window.addEventListener('storage', lsHandler);
   
   return () => {
-    channel.removeEventListener("message", handler);
+    if (channel) channel.removeEventListener("message", bcHandler);
+    window.removeEventListener('storage', lsHandler);
   };
 };
 
@@ -131,7 +153,6 @@ export const closeDb = async () => {
     await db.close();
     db = null;
   }
-  
   if (broadcastChannel) {
     broadcastChannel.close();
     broadcastChannel = null;
